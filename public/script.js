@@ -4,6 +4,7 @@ const _WORD_ = 'cross'
 let focusedCell
 let currentRow = 0
 let attempts = {}
+let cellsState = {}
 
 const appElement = document.querySelector('#app')
 
@@ -83,6 +84,9 @@ const handleEnterKeyPress = async e => {
   console.log(correctIndexes, wrongPlacedIndexes, userWon)
   applyStyle(correctIndexes, wrongPlacedIndexes)
   disableRow(currentRow)
+  cellsState[currentRow] = { correctIndexes, wrongPlacedIndexes } 
+  storeProgress()
+
   if(userWon) return alert('You WON!!!!!!')
   if(currentRow === _ROWS_ - 1) return
   currentRow++
@@ -91,6 +95,7 @@ const handleEnterKeyPress = async e => {
 
 const handleBackspaceKeyPress = e => {
   if (e.key !== 'Backspace') return
+  console.log(currentRow, focusedCell)
   const row = document.querySelector(`#row-${currentRow}`)
   const currentCellValue = row.querySelector(`[data-id="${focusedCell}"]`).value
   if(currentCellValue.length === 0) {
@@ -138,6 +143,42 @@ const post = async (url, body) => {
   return response.json() || {}
 }
 
+const storeProgress = () => {
+  const progress = {
+    currentRow,
+    attempts,
+    cellsState
+  }
+  localStorage.setItem('progress', JSON.stringify(progress))
+}
+
+const getStoredProgress = () => {
+  const state = localStorage.getItem('progress')
+  if (!state) return
+
+  return JSON.parse(state)
+}
+
+const loadStoredProgress = progress => {
+  attempts = progress.attempts
+  cellsState = progress.cellsState
+
+  for (let i = 0; i <= progress.currentRow; i++) {
+    // fill in the text boxes
+    const row = document.querySelector(`#row-${i}`)
+    for (let j = 0; j < _COLS_; j++) {
+      row.querySelector(`[data-id="${j}"]`).value = progress.attempts[currentRow][j]
+    }
+
+    // apply styling
+    const { correctIndexes, wrongPlacedIndexes } = progress.cellsState[i]
+    applyStyle(correctIndexes, wrongPlacedIndexes)
+
+    currentRow++
+
+  }
+
+}
 
 // ###############################################
 // Initialise the app
@@ -145,7 +186,11 @@ const post = async (url, body) => {
 
 const init = () => {
   generateRows(_ROWS_, _COLS_)
+  const storedProgress = getStoredProgress()
+  if(storedProgress) loadStoredProgress(storedProgress)
   document.addEventListener('keydown', handleKeyPress)
 }
+
+
 
 init()
