@@ -1,14 +1,9 @@
-// import getIndexPositions from '../utils/getIndexPositions.js'
-// import getLetterOccurrence from './helpers/getLetterOccurrence.js'
-import axios from 'axios'
-
 const _ROWS_ = 6
 const _COLS_ = 5
 const _WORD_ = 'cross'
 let focusedCell
 let currentRow = 0
 let attempts = {}
-let _letterOccurrence_ = {}
 
 const appElement = document.querySelector('#app')
 
@@ -84,12 +79,12 @@ const handleChangeEvent = e => {
 
 const handleEnterKeyPress = async e => {
   if(e.key !== 'Enter' || !attempts[currentRow] || attempts[currentRow].length < _COLS_) return
-  const { correctIndexes = [], wrongPlacedIndexes = [], userWon = false } = await axios.post('/api/verify', { input: attempts[currentRow] })
-  // const [correctIndexes, wrongPlacedIndexes] = getIndexPositions(attempts[currentRow], _WORD_, _letterOccurrence_)
+  const { correctIndexes = [], wrongPlacedIndexes = [], userWon = false } = await post('/api/verify', { input: attempts[currentRow] }).catch(err => console.log(err))
+  console.log(correctIndexes, wrongPlacedIndexes, userWon)
   applyStyle(correctIndexes, wrongPlacedIndexes)
-  // const winCheck = userGuessedCorrectly(correctIndexes)
-  if(userWon) return console.log('That\'s correct. Well done!')
   disableRow(currentRow)
+  if(userWon) return alert('You WON!!!!!!')
+  if(currentRow === _ROWS_ - 1) return
   currentRow++
   setFocusedCell(0)
 }
@@ -138,13 +133,17 @@ const goNextCell = id => focusedCell !== (_COLS_ - 1).toString() && setFocusedCe
 const goPreviousCell = id => focusedCell !== '0' && setFocusedCell(Number(id) - 1)
 const userGuessedCorrectly = indexes => indexes.length === _WORD_.length
 
+const post = async (url, body) => {
+  const response = await fetch(url, { method: 'POST', body: JSON.stringify(body), headers: { 'Content-Type': 'application/json' } })
+  return response.json() || {}
+}
+
 
 // ###############################################
 // Initialise the app
 // ###############################################
 
 const init = () => {
-  // _letterOccurrence_ = getLetterOccurrence(_WORD_)
   generateRows(_ROWS_, _COLS_)
   document.addEventListener('keydown', handleKeyPress)
 }
