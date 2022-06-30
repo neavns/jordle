@@ -6,9 +6,7 @@ const init = () => {
   const initialWord = getTodaysWord();
   const letterOccurrence = getLetterOccurrence(initialWord)
   cache.setMany({ word: initialWord, letterOccurrence })
-  console.log('initial state of cache', cache)
-
-  // todo start a cron job to update the word every day
+  console.log('state of cache', cache)
 }
 
 export default init

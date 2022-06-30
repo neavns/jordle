@@ -4,6 +4,7 @@ import { resolve } from 'path';
 import bodyParser from 'body-parser';
 import apiRoute from './routes/api/index.js';
 import init from './utils/init.js';
+import runCron from './utils/runCron.js';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -24,6 +25,7 @@ app.get('*', (_, res) => {
 })
 
 init()
+runCron({ func: init, startNow: true })
 
 app.listen(PORT, () => {
   console.log(`Server listening on port ${PORT}`);
