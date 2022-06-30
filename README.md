@@ -13,11 +13,11 @@ This is a quick clone of the [Wordle](https://www.nytimes.com/games/wordle/index
 - No database
 
 # Technical Aspect
-When you initially start the app it will initialise the app with the inial word to be guessed (stored in cache) and start a cron job that updates the cache everyday at midnight.
+When we start the app it will initialise with a random word to be guessed (stored in cache) and start a cron job that updates the cache everyday at midnight.
 
-Because this is a simple clone, there's no database. There's defined list of words that can be guessed which lives in a static file on the file-space. Everytime the cron job runs we take current word and add to cache in a `seenWords` list so that it's not repeated. Then we pick a random word from the list and set it as the new word to be guessed.
+Because this is a simple clone, there's no database. There's a defined list of words, 500 to be precise, that can be guessed which lives in a static file. Everytime the cron job runs we take current word and cache it in a `seenWords` list so that it's not repeated. Then we pick a random word from the list and set it as the new word to be guessed.
 
-Everytime the user tries to guess the word, we make a request to the server and check if the letters are in correct and are in the right place. We return two arrays, one with letter indexes that are in the correct place and one with the letter indexes that are in the word but in the wrong place. Frontend then does the rest.
+Everytime the user tries to guess the word, we make a request to the server and check if the letters are correct and are in the right place. We return two arrays, one with letter indexes that are in the correct place and one with the letter indexes that are in the word but in the wrong place. Frontend then does the rest.
 
 We also store the progress in `localStorage` so that the user can continue from where they left off when they refresh the page. The `localStorage` is cleared every day.
 
