@@ -21,6 +21,8 @@ Everytime the user tries to guess the word, we make a request to the server and 
 
 We also store the progress in `localStorage` so that the user can continue from where they left off when they refresh the page. The `localStorage` is cleared every day.
 
+## Update
+After looking at the real Wordle app, I realised that they don't have a server - everything is done on the client 😱. You can also cheat and find the solution in the `localStorage`. I totally got sidetracked and forgot that this isn't supposed to be a competitive game 🤦🏻‍♂️. But nevertheless, I really enjoyed working on this.
 
 # Getting Started
 To get it up and running simply clone the repo and run the following commands
