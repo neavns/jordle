@@ -86,7 +86,7 @@ const handleEnterKeyPress = async e => {
   applyStyle(correctIndexes, wrongPlacedIndexes)
   disableRow(currentRow)
   cellsState[currentRow] = { correctIndexes, wrongPlacedIndexes } 
-  storeProgress()
+  storeProgress({  userWon })
 
   if(userWon) return alert('You WON!!!!!!')
   if(currentRow === _ROWS_ - 1) return
@@ -95,7 +95,7 @@ const handleEnterKeyPress = async e => {
 }
 
 const handleBackspaceKeyPress = e => {
-  if (e.key !== 'Backspace') return
+  if (e.key !== 'Backspace' || !focusedCell) return
   console.log(currentRow, focusedCell)
   const row = document.querySelector(`#row-${currentRow}`)
   const currentCellValue = row.querySelector(`[data-id="${focusedCell}"]`).value
@@ -112,6 +112,7 @@ const handleKeyPress = e => {
     case 'Backspace': handleBackspaceKeyPress(e); break;
     case 'ArrowLeft': goPreviousCell(focusedCell); break;
     case 'ArrowRight': goNextCell(focusedCell); break;
+    case 'Tab': e.preventDefault(); break;
     default: break
   }
 }
@@ -144,11 +145,12 @@ const post = async (url, body) => {
   return response.json() || {}
 }
 
-const storeProgress = () => {
+const storeProgress = (aditionalData) => {
   const progress = {
     currentRow,
     attempts,
-    cellsState
+    cellsState,
+    ...aditionalData
   }
   localStorage.setItem('progress', JSON.stringify(progress))
 }
@@ -174,10 +176,13 @@ const loadStoredProgress = progress => {
     // apply styling
     const { correctIndexes, wrongPlacedIndexes } = progress.cellsState[i]
     applyStyle(correctIndexes, wrongPlacedIndexes)
+    disableRow(currentRow)
 
     currentRow++
-
   }
+
+  // if user guessed correctly - disable the remaining rows
+  if (progress.userWon) for (let i = currentRow; i < _ROWS_; i++)  disableRow(i)
 
 }
 
