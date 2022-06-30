@@ -39,7 +39,8 @@ const generateCell = id => {
 }
 
 const clearCell = id => {
-  document.querySelector(`[data-id="${id}"]`).value = ''
+  const row = document.querySelector(`#row-${currentRow}`)
+  row.querySelector(`[data-id="${id}"]`).value = ''
 }
 
 const disableRow = id => {
