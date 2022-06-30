@@ -1,6 +1,7 @@
+import timer from './helpers/timer.js'
+
 const _ROWS_ = 6
 const _COLS_ = 5
-const _WORD_ = 'cross'
 let focusedCell
 let currentRow = 0
 let attempts = {}
@@ -50,7 +51,7 @@ const disableRow = id => {
 
 const applyStyle = (correctIndexes, wrongPlace) => {
   const row = document.querySelector(`#row-${currentRow}`)
-  for (let i = 0; i < _WORD_.length; i++) {
+  for (let i = 0; i < _COLS_; i++) {
     const cell = row.querySelector(`[data-id="${i}"]`)
     if (correctIndexes.includes(i)) {
       cell.classList.add('correct')
@@ -82,13 +83,13 @@ const handleChangeEvent = e => {
 const handleEnterKeyPress = async e => {
   if(e.key !== 'Enter' || !attempts[currentRow] || attempts[currentRow].length < _COLS_) return
   const { correctIndexes = [], wrongPlacedIndexes = [], userWon = false } = await post('/api/verify', { input: attempts[currentRow] }).catch(err => console.log(err))
-  console.log(correctIndexes, wrongPlacedIndexes, userWon)
   applyStyle(correctIndexes, wrongPlacedIndexes)
   disableRow(currentRow)
-  cellsState[currentRow] = { correctIndexes, wrongPlacedIndexes } 
-  storeProgress({  userWon })
+  cellsState[currentRow] = { correctIndexes, wrongPlacedIndexes }
+  const gameHasEnded = userWon || Object.keys(attempts).length === _ROWS_
+  storeProgress({ userWon, gameHasEnded })
 
-  if(userWon) return alert('You WON!!!!!!')
+  if(userWon || gameHasEnded) return gameEnded(userWon)
   if(currentRow === _ROWS_ - 1) return
   currentRow++
   setFocusedCell(0)
@@ -138,7 +139,7 @@ const setFocusedCell = id => {
 
 const goNextCell = id => focusedCell !== (_COLS_ - 1).toString() && setFocusedCell(Number(id) + 1)
 const goPreviousCell = id => focusedCell !== '0' && setFocusedCell(Number(id) - 1)
-const userGuessedCorrectly = indexes => indexes.length === _WORD_.length
+
 
 const post = async (url, body) => {
   const response = await fetch(url, { method: 'POST', body: JSON.stringify(body), headers: { 'Content-Type': 'application/json' } })
@@ -150,6 +151,7 @@ const storeProgress = (aditionalData) => {
     currentRow,
     attempts,
     cellsState,
+    session: new Date().toLocaleDateString(),
     ...aditionalData
   }
   localStorage.setItem('progress', JSON.stringify(progress))
@@ -186,14 +188,31 @@ const loadStoredProgress = progress => {
 
 }
 
+const isTodaysDate = (date) => date === new Date().toLocaleDateString()
+
+const gameEnded = (userWon) => {
+  const text = userWon ? 'You guessed correctly! 🎉' : `Don't worry, you'll get it next time! 🚀`
+  document.querySelector('#the-end').style.display = 'block'
+  document.querySelector('#the-end-header').innerHTML = text
+  timer()
+}
+
 // ###############################################
 // Initialise the app
 // ###############################################
 
 const init = () => {
+  let storedProgress = getStoredProgress()
+  if (!isTodaysDate(storedProgress?.session)) {
+    localStorage.clear()
+    storedProgress = null
+  }
   generateRows(_ROWS_, _COLS_)
-  const storedProgress = getStoredProgress()
-  if(storedProgress) loadStoredProgress(storedProgress)
+
+  if(storedProgress) {
+    if (storedProgress.gameHasEnded) gameEnded(storedProgress.userWon)
+    loadStoredProgress(storedProgress)
+  }
   document.addEventListener('keydown', handleKeyPress)
 }
 
